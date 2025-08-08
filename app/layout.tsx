@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   title: site.name,
   description:
     'Sparkling homes & offices across York Region. Reliable, detail‑oriented cleaning. Get a free quote today.',
+  metadataBase: new URL(process.env.SITE_URL || 'http://localhost:3000'),
 };
 
 export default function RootLayout({

@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
 import { site } from '../../../config/site';
+import { withOg } from '../../../lib/seo';
+import { serviceJsonLd } from '../../../lib/schema';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: `Residential Cleaning — ${site.name}`,
-  description:
-    'Ongoing upkeep for houses, condos and apartments. One-time or recurring. Dusting, kitchen, bathrooms, floors, tidy.',
-};
+export const metadata: Metadata = withOg(
+  {
+    title: `Residential Cleaning — ${site.name}`,
+    description:
+      'Ongoing upkeep for houses, condos and apartments. One-time or recurring. Dusting, kitchen, bathrooms, floors, tidy.',
+  },
+  '/og/services.txt'
+);
 
 export default function ResidentialCleaningPage() {
   return (
@@ -70,6 +75,20 @@ export default function ResidentialCleaningPage() {
           </div>
         </aside>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            serviceJsonLd({
+              serviceType: 'Residential Cleaning',
+              areaServed: 'York Region / GTA',
+              providerName: site.name,
+              description:
+                'Ongoing upkeep for houses, condos and apartments. One-time or recurring.',
+            })
+          ),
+        }}
+      />
     </div>
   );
 }

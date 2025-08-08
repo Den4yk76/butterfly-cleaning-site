@@ -1,13 +1,42 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { site } from '../config/site';
 
-export function ContactForm() {
+type Props = { siteKey: string };
+
+export function ContactForm({ siteKey }: Props) {
   const [moreDetails, setMoreDetails] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    // Normalize multi-select into comma-separated string expected by API
+    const services = Array.from(form.querySelectorAll<HTMLSelectElement>('#services option:checked')).map(
+      (o) => o.value
+    );
+    fd.set('services', services.join(','));
+
+    const res = await fetch('/api/contact', { method: 'POST', body: fd });
+    setSubmitting(false);
+    if (res.ok) {
+      router.push('/contact/thank-you');
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data?.error || 'Something went wrong. Please try again.');
+    }
+  }
 
   return (
-    <form className="space-y-6" action="/api/contact" method="post">
+    <form className="space-y-6" onSubmit={onSubmit} noValidate>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-zinc-800">
@@ -181,16 +210,26 @@ export function ContactForm() {
         )}
       </div>
 
-      {/* Turnstile placeholder - real widget wired later */}
-      <div className="mt-2 text-xs text-zinc-600">Protected by Cloudflare Turnstile</div>
+      {/* Cloudflare Turnstile widget */}
+      {siteKey ? (
+        <>
+          <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" async defer />
+          <div className="cf-turnstile" data-sitekey={siteKey} data-theme="light" />
+        </>
+      ) : (
+        <div className="mt-2 text-xs text-zinc-600">Turnstile will load in production.</div>
+      )}
 
       <div className="pt-2">
         <button
           type="submit"
           className="inline-flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium h-11 px-6 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+          disabled={submitting}
+          aria-busy={submitting}
         >
-          {site.cta}
+          {submitting ? 'Sending…' : site.cta}
         </button>
+        {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       </div>
     </form>
   );
