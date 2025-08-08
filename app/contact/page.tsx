@@ -16,6 +16,7 @@ export default function ContactPage() {
         Tell us about your place and preferred date/time — we’ll reply quickly to confirm details and provide a quote.
       </p>
       <div className="mt-8">
+        {/* Cloudflare Turnstile token will be posted as turnstileToken via hidden input; widget wired later */}
         <ContactForm />
       </div>
     </div>
