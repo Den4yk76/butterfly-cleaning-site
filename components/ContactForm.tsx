@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { site } from '../config/site';
@@ -11,7 +11,18 @@ export function ContactForm({ siteKey }: Props) {
   const [moreDetails, setMoreDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const router = useRouter();
+
+  // Register a global callback for Turnstile to call when token is ready
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // @ts-expect-error attach global for Turnstile data-callback
+      window.onTurnstileSuccess = (token: string) => {
+        setTurnstileToken(token);
+      };
+    }
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,11 +30,17 @@ export function ContactForm({ siteKey }: Props) {
     setSubmitting(true);
     const form = e.currentTarget;
     const fd = new FormData(form);
+
     // Normalize multi-select into comma-separated string expected by API
     const services = Array.from(
       form.querySelectorAll<HTMLSelectElement>('#services option:checked')
     ).map((o) => o.value);
     fd.set('services', services.join(','));
+
+    // Add Turnstile token to form data (required in prod)
+    if (turnstileToken) {
+      fd.set('turnstileToken', turnstileToken);
+    }
 
     const res = await fetch('/api/contact', { method: 'POST', body: fd });
     setSubmitting(false);
@@ -286,6 +303,7 @@ export function ContactForm({ siteKey }: Props) {
             className="cf-turnstile"
             data-sitekey={siteKey}
             data-theme="light"
+            data-callback="onTurnstileSuccess"
           />
         </>
       ) : (

@@ -24,7 +24,11 @@ export default function ContactPage() {
         to confirm details and provide a quote.
       </p>
       <div className="mt-8">
-        <ContactForm siteKey={process.env.TURNSTILE_SITE_KEY ?? ''} />
+        {/* <ContactForm siteKey={process.env.TURNSTILE_SITE_KEY ?? ''} /> */}
+        {/* FOR TEST BELOW */}
+        <ContactForm
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''}
+        />
       </div>
       <script
         type="application/ld+json"

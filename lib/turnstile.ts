@@ -15,6 +15,12 @@ export async function verifyTurnstile(token: string | undefined, ip?: string) {
       message: 'Turnstile verification token missing',
     } as const;
   }
+
+  // For development, allow test tokens
+  if (token === 'test-token' && process.env.NODE_ENV === 'development') {
+    return { success: true } as const;
+  }
+
   try {
     const res = await fetch(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
