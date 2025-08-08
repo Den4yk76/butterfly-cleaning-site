@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,9 +20,9 @@ export function ContactForm({ siteKey }: Props) {
     const form = e.currentTarget;
     const fd = new FormData(form);
     // Normalize multi-select into comma-separated string expected by API
-    const services = Array.from(form.querySelectorAll<HTMLSelectElement>('#services option:checked')).map(
-      (o) => o.value
-    );
+    const services = Array.from(
+      form.querySelectorAll<HTMLSelectElement>('#services option:checked')
+    ).map((o) => o.value);
     fd.set('services', services.join(','));
 
     const res = await fetch('/api/contact', { method: 'POST', body: fd });
@@ -39,7 +39,10 @@ export function ContactForm({ siteKey }: Props) {
     <form className="space-y-6" onSubmit={onSubmit} noValidate>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Name
           </label>
           <input
@@ -51,7 +54,10 @@ export function ContactForm({ siteKey }: Props) {
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Phone
           </label>
           <input
@@ -63,7 +69,10 @@ export function ContactForm({ siteKey }: Props) {
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Email
           </label>
           <input
@@ -75,7 +84,10 @@ export function ContactForm({ siteKey }: Props) {
           />
         </div>
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="city"
+            className="block text-sm font-medium text-zinc-800"
+          >
             City
           </label>
           <select
@@ -95,7 +107,10 @@ export function ContactForm({ siteKey }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="services" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="services"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Services
           </label>
           <select
@@ -110,11 +125,16 @@ export function ContactForm({ siteKey }: Props) {
             <option value="move">Move-In/Move-Out</option>
             <option value="windows">Windows</option>
           </select>
-          <p className="mt-1 text-xs text-zinc-600">Hold Command/Ctrl to select multiple.</p>
+          <p className="mt-1 text-xs text-zinc-600">
+            Hold Command/Ctrl to select multiple.
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="preferredDate" className="block text-sm font-medium text-zinc-800">
+            <label
+              htmlFor="preferredDate"
+              className="block text-sm font-medium text-zinc-800"
+            >
               Preferred date
             </label>
             <input
@@ -125,7 +145,10 @@ export function ContactForm({ siteKey }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="preferredTime" className="block text-sm font-medium text-zinc-800">
+            <label
+              htmlFor="preferredTime"
+              className="block text-sm font-medium text-zinc-800"
+            >
               Preferred time
             </label>
             <select
@@ -144,7 +167,10 @@ export function ContactForm({ siteKey }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="recurring" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="recurring"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Recurring
           </label>
           <select
@@ -159,7 +185,10 @@ export function ContactForm({ siteKey }: Props) {
           </select>
         </div>
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-zinc-800">
+          <label
+            htmlFor="notes"
+            className="block text-sm font-medium text-zinc-800"
+          >
             Notes
           </label>
           <textarea
@@ -183,28 +212,62 @@ export function ContactForm({ siteKey }: Props) {
         {moreDetails && (
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <label htmlFor="bedrooms" className="block text-sm font-medium text-zinc-800">
+              <label
+                htmlFor="bedrooms"
+                className="block text-sm font-medium text-zinc-800"
+              >
                 Bedrooms
               </label>
-              <input id="bedrooms" name="bedrooms" type="number" min={0} className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" />
+              <input
+                id="bedrooms"
+                name="bedrooms"
+                type="number"
+                min={0}
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              />
             </div>
             <div>
-              <label htmlFor="bathrooms" className="block text-sm font-medium text-zinc-800">
+              <label
+                htmlFor="bathrooms"
+                className="block text-sm font-medium text-zinc-800"
+              >
                 Bathrooms
               </label>
-              <input id="bathrooms" name="bathrooms" type="number" min={0} className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" />
+              <input
+                id="bathrooms"
+                name="bathrooms"
+                type="number"
+                min={0}
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              />
             </div>
             <div>
-              <label htmlFor="pets" className="block text-sm font-medium text-zinc-800">
+              <label
+                htmlFor="pets"
+                className="block text-sm font-medium text-zinc-800"
+              >
                 Pets
               </label>
-              <input id="pets" name="pets" type="text" className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" />
+              <input
+                id="pets"
+                name="pets"
+                type="text"
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              />
             </div>
             <div>
-              <label htmlFor="parking" className="block text-sm font-medium text-zinc-800">
+              <label
+                htmlFor="parking"
+                className="block text-sm font-medium text-zinc-800"
+              >
                 Parking
               </label>
-              <input id="parking" name="parking" type="text" className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600" />
+              <input
+                id="parking"
+                name="parking"
+                type="text"
+                className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+              />
             </div>
           </div>
         )}
@@ -213,11 +276,22 @@ export function ContactForm({ siteKey }: Props) {
       {/* Cloudflare Turnstile widget */}
       {siteKey ? (
         <>
-          <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="afterInteractive" async defer />
-          <div className="cf-turnstile" data-sitekey={siteKey} data-theme="light" />
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            strategy="afterInteractive"
+            async
+            defer
+          />
+          <div
+            className="cf-turnstile"
+            data-sitekey={siteKey}
+            data-theme="light"
+          />
         </>
       ) : (
-        <div className="mt-2 text-xs text-zinc-600">Turnstile will load in production.</div>
+        <div className="mt-2 text-xs text-zinc-600">
+          Turnstile will load in production.
+        </div>
       )}
 
       <div className="pt-2">
@@ -236,5 +310,3 @@ export function ContactForm({ siteKey }: Props) {
 }
 
 export default ContactForm;
-
-
