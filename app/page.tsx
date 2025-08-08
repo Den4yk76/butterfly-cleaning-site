@@ -1,10 +1,74 @@
-// import Image from "next/image";
+import type { Metadata } from 'next';
+import { site } from '../config/site';
+import Hero from '../components/Hero';
+import ServiceCards from '../components/ServiceCards';
+import AreaChips from '../components/AreaChips';
+import Testimonial from '../components/Testimonial';
+import CTA from '../components/CTA';
+
+export const metadata: Metadata = {
+  title: site.name,
+  description:
+    'Sparkling homes & offices across York Region. Reliable, detail‑oriented cleaning. Get a free quote today.',
+};
 
 export default function Home() {
+  const services = [
+    { title: 'Residential Cleaning', href: '/services/residential-cleaning' },
+    { title: 'Commercial Cleaning', href: '/services/commercial-cleaning' },
+    { title: 'Deep Cleaning', href: '/services/deep-cleaning' },
+    { title: 'Move-In/Move-Out Cleaning', href: '/services/move-in-move-out-cleaning' },
+    { title: 'Window Cleaning', href: '/services/window-cleaning' },
+  ];
+
   return (
     <main>
-      <div className="h-2 bg-brand-500" />
-      {/* existing template content */}
+      <Hero
+        title="Sparkling Homes & Offices Across York Region"
+        subtitle="Reliable, detail‑oriented cleaning in Newmarket, Richmond Hill, Vaughan, Aurora, Markham & nearby."
+      />
+
+      <section className="py-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="font-heading text-2xl sm:text-3xl font-semibold text-brand-900">Our Top Services</h2>
+        </div>
+        <ServiceCards items={services} />
+      </section>
+
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="font-heading text-2xl sm:text-3xl font-semibold text-brand-900">Why choose us</h2>
+          <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 text-zinc-700">
+            <li className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">Family-run, owner-operated.</li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">We care about the details (edges, corners, fixtures).</li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">Flexible scheduling — one-time or recurring.</li>
+            <li className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">Satisfaction Guaranteed — if something’s not right, we’ll make it right.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="font-heading text-2xl sm:text-3xl font-semibold text-brand-900">What clients say</h2>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Testimonial quote="They did an amazing job! Everything was spotless." author="A." location="Newmarket" />
+            <Testimonial quote="Professional, on time, and very thorough." author="J." location="Richmond Hill" />
+            <Testimonial quote="Highly recommend — great attention to detail." author="K." location="Vaughan" />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="font-heading text-2xl sm:text-3xl font-semibold text-brand-900">Service area</h2>
+          <p className="mt-2 text-zinc-700">If you’re nearby but don’t see your area, just ask.</p>
+          <div className="mt-4">
+            <AreaChips />
+          </div>
+        </div>
+      </section>
+
+      <CTA title="Ready for a fresh, clean space?" subtitle="We’ll reply quickly to confirm details and provide a quote." />
     </main>
   );
 }
