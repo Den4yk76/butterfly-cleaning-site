@@ -1,0 +1,25 @@
+export const site = {
+  name: 'The Butterfly Cleaning',
+  phone: '(647) 327-5163',
+  phoneE164: '+16473275163',
+  email: 'info@thebutterflycleaning.co',
+  instagram: 'https://instagram.com/thebutterflycleaning',
+  areas: [
+    'Newmarket',
+    'Richmond Hill',
+    'Vaughan',
+    'Maple',
+    'Aurora',
+    'Markham',
+    'King City',
+    'North York',
+    'Thornhill',
+    'Concord',
+    'Woodbridge',
+    'Stouffville',
+  ],
+  areasNote: 'and nearby GTA',
+  cta: 'Get a Free Quote',
+  pricingNote:
+    'We offer flat quotes or hourly billing. No strict minimum — preferred minimum booking is 3–4 hours.',
+};

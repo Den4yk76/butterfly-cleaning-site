@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-50: #eaf6fe;
+  --color-brand-500: #62b4e6;
+  --color-brand-600: #328bc8;
+  --color-brand-700: #1872b5;
+  --color-brand-900: #16314b;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+  --font-heading: var(--font-playfair);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+.font-heading {
+  font-family: var(--font-heading), ui-serif, Georgia, Cambria,
+    'Times New Roman', Times, serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), ui-serif, Georgia, Cambria,
+    'Times New Roman', Times, serif;
+}
