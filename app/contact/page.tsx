@@ -13,6 +13,10 @@ export const metadata: Metadata = withOg(
   '/og/contact.txt'
 );
 
+const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
+
+console.log('site key: ', siteKey);
+
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
@@ -24,11 +28,7 @@ export default function ContactPage() {
         to confirm details and provide a quote.
       </p>
       <div className="mt-8">
-        {/* <ContactForm siteKey={process.env.TURNSTILE_SITE_KEY ?? ''} /> */}
-        {/* FOR TEST BELOW */}
-        <ContactForm
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''}
-        />
+        <ContactForm siteKey={siteKey} />
       </div>
       <script
         type="application/ld+json"

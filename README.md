@@ -18,7 +18,7 @@ Create `.env.local` from `.env.example`:
 ```ini
 RESEND_API_KEY=
 RESEND_FROM="The Butterfly Cleaning <info@thebutterflycleaning.co>"
-TURNSTILE_SITE_KEY=
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
 SITE_URL=https://thebutterflycleaning.co
 ```
