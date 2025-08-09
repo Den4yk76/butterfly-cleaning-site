@@ -55,7 +55,8 @@ export function ContactForm({ siteKey }: Props) {
       router.push('/contact/thank-you');
     } else {
       const data = await res.json().catch(() => ({}));
-      setError(data?.error || 'Something went wrong. Please try again.');
+      const errorMessage = data?.error || 'Something went wrong. Please try again or call us at (647) 327-5163.';
+      setError(errorMessage);
     }
   }
 

@@ -87,10 +87,13 @@ npm run dev
    - Look for both sent emails and their delivery status
    - Check for any bounce or delivery failures
 
-3. **Verify Domain Setup**:
-   - Ensure `thebutterflycleaning.co` is verified in Resend
-   - Check that DNS records (SPF, DKIM, DMARC) are properly configured
-   - Verify RESEND_FROM uses the verified domain: `no-reply@thebutterflycleaning.co`
+3. **Verify Domain Setup** (CRITICAL - Most Common Issue):
+   - **Domain Verification**: In Resend dashboard, add and verify `thebutterflycleaning.co` (NOT `send.thebutterflycleaning.co`)
+   - **DNS Records**: Add the required DNS records that Resend provides:
+     - TXT record for domain verification
+     - MX, SPF, DKIM records for email authentication
+   - **RESEND_FROM**: Must use the exact verified domain: `"The Butterfly Cleaning <no-reply@thebutterflycleaning.co>"`
+   - **Common Error**: If you see `send.thebutterflycleaning.co` in logs, the domain is incorrectly configured
 
 4. **Check Email Provider Settings**:
    - Look in spam/junk folders at `info@thebutterflycleaning.co`
@@ -98,10 +101,12 @@ npm run dev
    - Consider adding `no-reply@thebutterflycleaning.co` to safe senders list
 
 5. **Common Issues**:
-   - **Domain not verified**: Emails will be rejected
-   - **DNS records missing**: Poor deliverability, emails marked as spam
+   - **Domain not verified**: Emails bounce with "Domain not found" error
+   - **Wrong subdomain**: Using `send.thebutterflycleaning.co` instead of `thebutterflycleaning.co`
+   - **DNS records missing**: Poor deliverability, emails marked as spam  
    - **Rate limiting**: Too many emails sent too quickly
    - **Email provider blocking**: Some providers block automated emails
+   - **RESEND_FROM mismatch**: Email address domain doesn't match verified domain
 
 6. **Debug Environment Variables**:
    ```bash
@@ -109,6 +114,39 @@ npm run dev
    # "Environment variables check:" output
    # This will show if CONTACT_TO is set correctly
    ```
+
+### 🚨 **URGENT: Fix Domain Configuration Issue**
+
+If you're seeing `send.thebutterflycleaning.co` domain errors in Resend logs:
+
+#### Step 1: Check Current Domain in Resend Dashboard
+1. Go to [Resend Dashboard → Domains](https://resend.com/domains)
+2. Check what domain is currently added
+3. If you see `send.thebutterflycleaning.co` - this is WRONG
+
+#### Step 2: Add Correct Domain
+1. **Remove** any incorrect domains (like `send.thebutterflycleaning.co`)
+2. **Add** the correct domain: `thebutterflycleaning.co`
+3. **Verify** the domain by adding DNS records Resend provides
+
+#### Step 3: Update Environment Variables
+Make sure your production environment variables are:
+```ini
+RESEND_FROM="The Butterfly Cleaning <no-reply@thebutterflycleaning.co>"
+# NOT: RESEND_FROM="The Butterfly Cleaning <no-reply@send.thebutterflycleaning.co>"
+```
+
+#### Step 4: DNS Records to Add
+In your Namecheap DNS settings, add these records (provided by Resend):
+- **TXT record** for domain verification
+- **MX record** for email receiving  
+- **TXT record** for SPF: `v=spf1 include:_spf.resend.com ~all`
+- **CNAME record** for DKIM (specific key provided by Resend)
+
+#### Step 5: Wait and Test
+- DNS propagation takes 24-48 hours
+- Run `node test-email.js` to verify
+- Check Resend logs for successful delivery
 
 ## Content & config
 
