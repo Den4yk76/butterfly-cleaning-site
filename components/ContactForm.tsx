@@ -38,11 +38,18 @@ export function ContactForm({ siteKey }: Props) {
     fd.set('services', services.join(','));
 
     // Add Turnstile token to form data (required in prod)
+    const headers: HeadersInit = {};
     if (turnstileToken) {
       fd.set('turnstileToken', turnstileToken);
+      // Also send as cf-turnstile-response header (standard Turnstile behavior)
+      headers['cf-turnstile-response'] = turnstileToken;
     }
 
-    const res = await fetch('/api/contact', { method: 'POST', body: fd });
+    const res = await fetch('/api/contact', { 
+      method: 'POST', 
+      body: fd,
+      headers 
+    });
     setSubmitting(false);
     if (res.ok) {
       router.push('/contact/thank-you');
