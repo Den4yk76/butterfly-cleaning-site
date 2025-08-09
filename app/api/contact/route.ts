@@ -43,6 +43,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Debug log environment variables in non-production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Environment variables check:');
+    console.log('RESEND_FROM:', process.env.RESEND_FROM);
+    console.log('CONTACT_TO:', process.env.CONTACT_TO);
+    console.log('CONTACT_REPLY_TO:', process.env.CONTACT_REPLY_TO);
+  }
+
   const contentType = req.headers.get('content-type') || '';
   let body: unknown;
   if (contentType.includes('application/json')) {
@@ -147,29 +155,72 @@ Tel: tel:${data.phone}`;
   }
 
   try {
-    // Send owner notification email
-    await resend.emails.send({
+    // Send both emails in parallel, but handle errors separately
+
+    // Owner notification email
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Sending owner notification to: ${process.env.CONTACT_TO}`);
+    }
+    const ownerEmailPromise = resend.emails.send({
       from: process.env.RESEND_FROM!,
       to: [process.env.CONTACT_TO!],
       replyTo: data.email, // Customer replies go straight to them
       subject: ownerSubject,
       html: ownerHtml,
       text: ownerText,
+    }).catch(error => {
+      console.error('Owner email failed:', error);
+      return { error: 'owner-email-failed', originalError: error };
     });
 
-    // Send customer auto-reply
-    await resend.emails.send({
+    // Customer auto-reply
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Sending customer auto-reply to: ${data.email}`);
+    }
+    const customerEmailPromise = resend.emails.send({
       from: process.env.RESEND_FROM!,
       to: [data.email],
       replyTo: process.env.CONTACT_REPLY_TO!, // Customer replies reach us
       subject: 'We received your quote request',
       html: customerHtml,
       text: customerText,
+    }).catch(error => {
+      console.error('Customer email failed:', error);
+      return { error: 'customer-email-failed', originalError: error };
     });
+
+    // Wait for both emails to complete
+    const [ownerResult, customerResult] = await Promise.all([
+      ownerEmailPromise,
+      customerEmailPromise
+    ]);
+
+    // Check results
+    let hasErrors = false;
+    if (ownerResult && 'error' in ownerResult) {
+      console.error('Owner email delivery failed');
+      hasErrors = true;
+    } else if (process.env.NODE_ENV !== 'production' && ownerResult) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.log('Owner email sent successfully:', (ownerResult as any)?.data?.id);
+    }
+
+    if (customerResult && 'error' in customerResult) {
+      console.error('Customer email delivery failed');
+      hasErrors = true;
+    } else if (process.env.NODE_ENV !== 'production' && customerResult) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.log('Customer email sent successfully:', (customerResult as any)?.data?.id);
+    }
+
+    // Return success even if one email fails (but log the issue)
+    if (hasErrors) {
+      console.error('Some emails failed to send, but continuing...');
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error('Unexpected email sending error:', error);
     return NextResponse.json(
       { error: 'Failed to send email' },
       { status: 500 }

@@ -73,6 +73,43 @@ npm run dev
    - Remove/alter Turnstile token → should return 400 "Verification failed"
    - Send invalid form data → should return 400 with validation message
 
+### Troubleshooting Email Delivery
+
+#### If owner emails are not being received:
+
+1. **Test Email Script**: Run the debug script:
+   ```bash
+   node test-email.js
+   ```
+
+2. **Check Resend Dashboard**: 
+   - Go to [Resend Logs](https://resend.com/logs) 
+   - Look for both sent emails and their delivery status
+   - Check for any bounce or delivery failures
+
+3. **Verify Domain Setup**:
+   - Ensure `thebutterflycleaning.co` is verified in Resend
+   - Check that DNS records (SPF, DKIM, DMARC) are properly configured
+   - Verify RESEND_FROM uses the verified domain: `no-reply@thebutterflycleaning.co`
+
+4. **Check Email Provider Settings**:
+   - Look in spam/junk folders at `info@thebutterflycleaning.co`
+   - If using Namecheap Private Email, check their spam filtering settings
+   - Consider adding `no-reply@thebutterflycleaning.co` to safe senders list
+
+5. **Common Issues**:
+   - **Domain not verified**: Emails will be rejected
+   - **DNS records missing**: Poor deliverability, emails marked as spam
+   - **Rate limiting**: Too many emails sent too quickly
+   - **Email provider blocking**: Some providers block automated emails
+
+6. **Debug Environment Variables**:
+   ```bash
+   # In development, check the logs for:
+   # "Environment variables check:" output
+   # This will show if CONTACT_TO is set correctly
+   ```
+
 ## Content & config
 
 - Edit phone/CTA/areas: `config/site.ts`
