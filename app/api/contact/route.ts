@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getResend, getFromAddress } from '../../../lib/resend';
+import { getResend } from '../../../lib/resend';
 import { verifyTurnstile } from '../../../lib/turnstile';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -22,6 +22,35 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Check required environment variables early
+  const requiredEnvs = {
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM: process.env.RESEND_FROM,
+    CONTACT_TO: process.env.CONTACT_TO,
+    CONTACT_REPLY_TO: process.env.CONTACT_REPLY_TO,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+  };
+
+  const missingEnvs = Object.entries(requiredEnvs)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingEnvs.length > 0) {
+    console.error(`Missing required environment variables: ${missingEnvs.join(', ')}`);
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 }
+    );
+  }
+
+  // Debug log environment variables in non-production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Environment variables check:');
+    console.log('RESEND_FROM:', process.env.RESEND_FROM);
+    console.log('CONTACT_TO:', process.env.CONTACT_TO);
+    console.log('CONTACT_REPLY_TO:', process.env.CONTACT_REPLY_TO);
+  }
+
   const contentType = req.headers.get('content-type') || '';
   let body: unknown;
   if (contentType.includes('application/json')) {
@@ -50,7 +79,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid request data' },
+      { status: 400 }
+    );
   }
   const data = parsed.data;
 
@@ -58,47 +90,118 @@ export async function POST(req: NextRequest) {
   const token =
     data.turnstileToken ||
     (req.headers.get('cf-turnstile-response') ?? undefined);
-  const ip = req.headers.get('x-forwarded-for') ?? undefined;
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? undefined;
   const verification = await verifyTurnstile(token, ip);
   if (!verification.success) {
     return NextResponse.json({ error: 'Verification failed' }, { status: 400 });
   }
 
   // Prepare email content
-  const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
-  const services = Array.isArray(data.services) ? data.services.join(', ') : '';
+  const services = Array.isArray(data.services) ? data.services.join(', ') : data.services || '';
   const ownerSubject = `New Quote Request – ${data.name}${
     data.city ? ` (${data.city})` : ''
   }`;
-  const details = `Name: ${data.name}\nPhone: ${data.phone}\nEmail: ${data.email}\nCity: ${data.city}\nServices: ${services}\nPreferred date: ${data.preferredDate}\nPreferred time: ${data.preferredTime}\nRecurring: ${data.recurring}\nBedrooms: ${data.bedrooms}\nBathrooms: ${data.bathrooms}\nPets: ${data.pets}\nParking: ${data.parking}\nNotes: ${data.notes}`;
+
+  // Generate owner email HTML and text
+  const ownerHtml = `
+    <h2>New Quote Request</h2>
+    <p><strong>Name:</strong> ${data.name}</p>
+    <p><strong>Phone:</strong> <a href="tel:${data.phone}">${data.phone}</a></p>
+    <p><strong>Email:</strong> ${data.email}</p>
+    <p><strong>City:</strong> ${data.city}</p>
+    <p><strong>Services:</strong> ${services}</p>
+    <p><strong>Preferred Date:</strong> ${data.preferredDate}</p>
+    <p><strong>Preferred Time:</strong> ${data.preferredTime}</p>
+    <p><strong>Recurring:</strong> ${data.recurring}</p>
+    ${data.bedrooms ? `<p><strong>Bedrooms:</strong> ${data.bedrooms}</p>` : ''}
+    ${data.bathrooms ? `<p><strong>Bathrooms:</strong> ${data.bathrooms}</p>` : ''}
+    ${data.pets ? `<p><strong>Pets:</strong> ${data.pets}</p>` : ''}
+    ${data.parking ? `<p><strong>Parking:</strong> ${data.parking}</p>` : ''}
+    ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
+  `;
+
+  const ownerText = `New Quote Request
+
+Name: ${data.name}
+Phone: ${data.phone}
+Email: ${data.email}
+City: ${data.city}
+Services: ${services}
+Preferred Date: ${data.preferredDate}
+Preferred Time: ${data.preferredTime}
+Recurring: ${data.recurring}${data.bedrooms ? `\nBedrooms: ${data.bedrooms}` : ''}${data.bathrooms ? `\nBathrooms: ${data.bathrooms}` : ''}${data.pets ? `\nPets: ${data.pets}` : ''}${data.parking ? `\nParking: ${data.parking}` : ''}${data.notes ? `\nNotes: ${data.notes}` : ''}
+
+Tel: tel:${data.phone}`;
+
+  // Generate customer auto-reply HTML and text
+  const firstName = data.name.split(' ')[0] || '';
+  const customerHtml = `
+    <p>Hi ${firstName},</p>
+    <p>Thanks for reaching out to The Butterfly Cleaning! We received your request and will get back to you soon to confirm details and provide a quote.</p>
+    <p>If it's urgent, call us at <a href="tel:(647) 327-5163">(647) 327-5163</a>.</p>
+    <p>— The Butterfly Cleaning</p>
+  `;
+
+  const customerText = `Hi ${firstName}, thanks for reaching out to The Butterfly Cleaning! We received your request and will get back to you soon to confirm details and provide a quote. If it's urgent, call us at (647) 327-5163.
+
+— The Butterfly Cleaning`;
 
   const resend = getResend();
-  const from = getFromAddress();
-
-  if (resend) {
-    // Owner email
-    await resend.emails.send({
-      from,
-      to: [from],
-      subject: ownerSubject,
-      text: `${details}\n\nTel: tel:${data.phone}`,
-    });
-    // Client auto-reply
-    await resend.emails.send({
-      from,
-      to: [data.email],
-      subject: 'We received your quote request',
-      text: `Hi ${
-        data.name.split(' ')[0] || ''
-      }, thanks for reaching out to The Butterfly Cleaning! We received your request and will get back to you soon to confirm details and provide a quote. If it’s urgent, call us at ${
-        process.env.RESEND_FROM?.match(/<([^>]+)>/)
-          ? '(647) 327-5163'
-          : '(647) 327-5163)'
-      }.
-
-You submitted:\n${details}\n\nVisit ${siteUrl}`,
-    });
+  if (!resend) {
+    return NextResponse.json(
+      { error: 'Email service unavailable' },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ ok: true });
+  try {
+    // Send owner notification email FIRST - this is critical business logic
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Sending owner notification to: ${process.env.CONTACT_TO}`);
+    }
+    
+    const ownerEmailResult = await resend.emails.send({
+      from: process.env.RESEND_FROM!,
+      to: [process.env.CONTACT_TO!],
+      replyTo: data.email, // Customer replies go straight to them
+      subject: ownerSubject,
+      html: ownerHtml,
+      text: ownerText,
+    });
+
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.log('Owner email sent successfully:', (ownerEmailResult as any)?.data?.id);
+    }
+
+    // ONLY send customer confirmation if owner notification succeeded
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Owner notification sent successfully, now sending customer auto-reply to: ${data.email}`);
+    }
+    
+    const customerEmailResult = await resend.emails.send({
+      from: process.env.RESEND_FROM!,
+      to: [data.email],
+      replyTo: process.env.CONTACT_REPLY_TO!, // Customer replies reach us
+      subject: 'We received your quote request',
+      html: customerHtml,
+      text: customerText,
+    });
+
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.log('Customer email sent successfully:', (customerEmailResult as any)?.data?.id);
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('Email sending failed:', error);
+    
+    // If owner email fails, don't send customer confirmation
+    // Return error so customer knows submission failed
+    return NextResponse.json(
+      { error: 'Unable to process your request. Please try again or call us directly.' },
+      { status: 500 }
+    );
+  }
 }
